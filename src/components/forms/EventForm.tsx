@@ -34,7 +34,8 @@ export function EventForm({
     time: "",
     location: "",
     capacity: "",
-    description: ""
+    description: "",
+    image: ""
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [submitResult, setSubmitResult] = useState<CampusEvent | null>(null);
@@ -49,7 +50,8 @@ export function EventForm({
         time: selectedEvent.time,
         location: selectedEvent.location,
         capacity: String(selectedEvent.capacity),
-        description: selectedEvent.description
+        description: selectedEvent.description,
+        image: selectedEvent.image || ""
       });
     } else {
       setFormData({
@@ -59,7 +61,8 @@ export function EventForm({
         time: "",
         location: "",
         capacity: "",
-        description: ""
+        description: "",
+        image: ""
       });
     }
   }, [page, selectedEvent]);
@@ -102,7 +105,8 @@ export function EventForm({
       time: formData.time,
       location: formData.location.trim(),
       capacity: capNum,
-      description: formData.description.trim()
+      description: formData.description.trim(),
+      image: formData.image.trim() || undefined
     };
 
     try {
@@ -121,12 +125,7 @@ export function EventForm({
       <div className="hata-kutusu">
         <h2>Geçersiz Bağlantı!</h2>
         <p>Güncellenecek etkinlik bulunamadı. Lütfen bir etkinlik seçiniz.</p>
-        <button
-          type="button"
-          className="buton-link"
-          style={{ marginTop: "1rem" }}
-          onClick={() => onNavigate("events")}
-        >
+        <button type="button" className="buton-link" style={{ marginTop: "1rem" }} onClick={() => onNavigate("events")}>
           Etkinliklere git
         </button>
       </div>
@@ -153,100 +152,51 @@ export function EventForm({
       <form className="form" noValidate onSubmit={handleFormSubmit}>
         <div>
           <label htmlFor="title">Etkinlik Adı</label>
-          <input
-            id="title"
-            name="title"
-            type="text"
-            maxLength={80}
-            placeholder="Etkinlik adını girin"
-            value={formData.title}
-            onChange={handleInputChange}
-            aria-invalid={errors.title ? "true" : undefined}
-          />
+          <input id="title" name="title" type="text" maxLength={80} placeholder="Etkinlik adını girin" value={formData.title} onChange={handleInputChange} aria-invalid={errors.title ? "true" : undefined} />
           {errors.title && <span className="hata-alani">{errors.title}</span>}
         </div>
 
         <div>
           <label htmlFor="category">Kategori</label>
-          <select
-            id="category"
-            name="category"
-            value={formData.category}
-            onChange={handleInputChange}
-            aria-invalid={errors.category ? "true" : undefined}
-          >
+          <select id="category" name="category" value={formData.category} onChange={handleInputChange} aria-invalid={errors.category ? "true" : undefined}>
             <option value="">Seçiniz ▾</option>
-            {categories.map((c) => (
-              <option key={c} value={c}>{c}</option>
-            ))}
+            {categories.map((c) => (<option key={c} value={c}>{c}</option>))}
           </select>
           {errors.category && <span className="hata-alani">{errors.category}</span>}
         </div>
 
         <div>
           <label htmlFor="date">Tarih</label>
-          <input
-            id="date"
-            name="date"
-            type="date"
-            value={formData.date}
-            onChange={handleInputChange}
-            aria-invalid={errors.date ? "true" : undefined}
-          />
+          <input id="date" name="date" type="date" value={formData.date} onChange={handleInputChange} aria-invalid={errors.date ? "true" : undefined} />
           {errors.date && <span className="hata-alani">{errors.date}</span>}
         </div>
 
         <div>
           <label htmlFor="time">Saat</label>
-          <input
-            id="time"
-            name="time"
-            type="time"
-            value={formData.time}
-            onChange={handleInputChange}
-            aria-invalid={errors.time ? "true" : undefined}
-          />
+          <input id="time" name="time" type="time" value={formData.time} onChange={handleInputChange} aria-invalid={errors.time ? "true" : undefined} />
           {errors.time && <span className="hata-alani">{errors.time}</span>}
         </div>
 
         <div>
           <label htmlFor="location">Yer</label>
-          <input
-            id="location"
-            name="location"
-            type="text"
-            placeholder="Örn: A Blok Salon"
-            value={formData.location}
-            onChange={handleInputChange}
-            aria-invalid={errors.location ? "true" : undefined}
-          />
+          <input id="location" name="location" type="text" placeholder="Örn: A Blok Salon" value={formData.location} onChange={handleInputChange} aria-invalid={errors.location ? "true" : undefined} />
           {errors.location && <span className="hata-alani">{errors.location}</span>}
         </div>
 
         <div>
           <label htmlFor="capacity">Kontenjan (1-1000)</label>
-          <input
-            id="capacity"
-            name="capacity"
-            type="number"
-            placeholder="Örn: 100"
-            value={formData.capacity}
-            onChange={handleInputChange}
-            aria-invalid={errors.capacity ? "true" : undefined}
-          />
+          <input id="capacity" name="capacity" type="number" placeholder="Örn: 100" value={formData.capacity} onChange={handleInputChange} aria-invalid={errors.capacity ? "true" : undefined} />
           {errors.capacity && <span className="hata-alani">{errors.capacity}</span>}
         </div>
 
         <div>
+          <label htmlFor="image">Afiş Görseli URL (İsteğe bağlı)</label>
+          <input id="image" name="image" type="text" placeholder="Örn: /afis.svg veya https://..." value={formData.image} onChange={handleInputChange} />
+        </div>
+
+        <div>
           <label htmlFor="description">Açıklama</label>
-          <textarea
-            id="description"
-            name="description"
-            rows={4}
-            placeholder="Açıklama giriniz"
-            value={formData.description}
-            onChange={handleInputChange}
-          />
+          <textarea id="description" name="description" rows={4} placeholder="Açıklama giriniz" value={formData.description} onChange={handleInputChange} />
         </div>
 
         <button type="submit" disabled={submitting}>
