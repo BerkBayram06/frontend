@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import "./App.css";
 import type { CampusEvent, Category, PageName } from "./types/campus-event";
-import { events } from "./data/events";
 import { searchEvents, filterByCategory, findEventById } from "./utils/filter-events";
 
 function formatDate(dateStr: string): string {
@@ -22,11 +21,51 @@ interface FormErrors {
   capacity?: string;
 }
 
+// Varsayılan mock veriler (API erişilemezse yedek olarak kullanılır)
+const MOCK_API_EVENTS: CampusEvent[] = [
+  {
+    id: "event-1",
+    title: "Kariyer Günleri 2026",
+    category: "Seminer",
+    capacity: 100,
+    date: "2026-10-12",
+    time: "14:00",
+    location: "A Blok Konferans Salonu",
+    description: "Mezunlarla kariyer söyleşileri ve şirket standları.",
+    image: "/afis.svg"
+  },
+  {
+    id: "event-2",
+    title: "Robotik Atölyesi",
+    category: "Atölye",
+    capacity: 20,
+    date: "2026-10-20",
+    time: "10:00",
+    location: "Bilgisayar Laboratuvarı 2",
+    description: "Arduino ile çizgi izleyen robot yapımı, başlangıç seviyesi."
+  },
+  {
+    id: "event-3",
+    title: "Siber Güvenlik ve Ağ Savunması",
+    category: "Söyleşi",
+    capacity: 80,
+    date: "2026-10-27",
+    time: "15:00",
+    location: "B Blok Amfi 1",
+    description: "Güncel siber tehditler ve beyaz şapkalı hackerlık üzerine söyleşi."
+  }
+];
+
 export default function App() {
   const [page, setPage] = useState<PageName>("home");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [searchText, setSearchText] = useState<string>("");
   const [selectedCategory, setSelectedCategory] = useState<Category | "">("");
+
+  // API State'leri
+  const [eventsList, setEventsList] = useState<CampusEvent[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   // Form State'leri
   const [formData, setFormData] = useState({
@@ -40,6 +79,32 @@ export default function App() {
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [submitResult, setSubmitResult] = useState<CampusEvent | null>(null);
+  const [submitting, setSubmitting] = useState<boolean>(false);
+
+  // 1. Veri Çekme (Data Fetching - GET)
+  useEffect(() => {
+    async function loadEvents() {
+      setLoading(true);
+      setFetchError(null);
+      try {
+        // Varsa canlı API URL'ini buraya yazabilirsin (ör. https://api.example.com/events)
+        // Şimdilik asenkron API davranışını simüle eden fetch/mock kullanılıyor
+        const response = await fetch("https://jsonplaceholder.typicode.com/posts/1");
+        if (!response.ok) {
+          throw new Error("Veriler yüklenirken sunucu hatası oluştu.");
+        }
+        setEventsList(MOCK_API_EVENTS);
+      } catch (err: any) {
+        // Hata durumunda yedek verileri yükler ama uyarıyı gösterir
+        setEventsList(MOCK_API_EVENTS);
+        setFetchError("API ile bağlantı kurulamadı, varsayılan veriler yüklendi.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadEvents();
+  }, []);
 
   function go(next: PageName, id: string | null = null) {
     setPage(next);
@@ -47,9 +112,8 @@ export default function App() {
     setErrors({});
     setSubmitResult(null);
 
-    // Güncelleme moduna geçildiyse formu etkinliğin bilgileriyle doldur
     if (next === "update" && id) {
-      const target = findEventById(events, id);
+      const target = findEventById(eventsList, id);
       if (target) {
         setFormData({
           title: target.title,
@@ -74,7 +138,7 @@ export default function App() {
     }
   }
 
-  const selected = selectedId ? findEventById(events, selectedId) : undefined;
+  const selected = selectedId ? findEventById(eventsList, selectedId) : undefined;
 
   useEffect(() => {
     let title = "Ana Sayfa";
@@ -86,11 +150,11 @@ export default function App() {
     document.title = `Kampüs Etkinlikleri — ${title}`;
   }, [page, selected]);
 
-  const upcoming = [...events]
+  const upcoming = [...eventsList]
     .sort((a, b) => a.date.localeCompare(b.date))
     .slice(0, 2);
 
-  const filtered = filterByCategory(searchEvents(events, searchText), selectedCategory);
+  const filtered = filterByCategory(searchEvents(eventsList, searchText), selectedCategory);
   const categories: Category[] = ["Seminer", "Atölye", "Söyleşi", "Yarışma"];
 
   function handleInputChange(
@@ -100,7 +164,8 @@ export default function App() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   }
 
-  function handleFormSubmit(e: React.FormEvent) {
+  // 2. Form Gönderimi (POST / PUT)
+  async function handleFormSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitResult(null);
 
@@ -131,9 +196,10 @@ export default function App() {
       return;
     }
 
-    // Başarılı durum
     setErrors({});
-    const finalData: CampusEvent = {
+    setSubmitting(true);
+
+    const payload: CampusEvent = {
       id: page === "update" && selectedId ? selectedId : `event-${Date.now()}`,
       title: formData.title.trim(),
       category: formData.category as Category,
@@ -143,7 +209,23 @@ export default function App() {
       capacity: capNum,
       description: formData.description.trim()
     };
-    setSubmitResult(finalData);
+
+    try {
+      // POST veya PUT asenkron isteği simülasyonu
+      await new Promise((resolve) => setTimeout(resolve, 600));
+
+      if (page === "add") {
+        setEventsList((prev) => [payload, ...prev]);
+      } else {
+        setEventsList((prev) => prev.map((item) => (item.id === payload.id ? payload : item)));
+      }
+
+      setSubmitResult(payload);
+    } catch (err) {
+      alert("İşlem sırasında bir hata oluştu.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   function renderCard(event: CampusEvent) {
@@ -204,267 +286,281 @@ export default function App() {
       </header>
 
       <main>
-        {/* ANA SAYFA */}
-        {page === "home" && (
-          <>
-            <h2>Yaklaşan 2 Etkinlik</h2>
-            <section className="etkinlik-listesi">
-              {upcoming.map(renderCard)}
-            </section>
-            <div style={{ marginTop: "1.5rem" }}>
-              <button
-                type="button"
-                className="buton-link"
-                onClick={() => go("events")}
-              >
-                Tüm etkinlikleri gör
-              </button>
-            </div>
-          </>
+        {fetchError && (
+          <div className="hata-kutusu" style={{ marginBottom: "1rem" }}>
+            {fetchError}
+          </div>
         )}
 
-        {/* ETKİNLİKLER LİSTESİ */}
-        {page === "events" && (
+        {loading ? (
+          <div style={{ textAlign: "center", padding: "2rem", fontWeight: "bold" }}>
+            Etkinlikler yükleniyor, lütfen bekleyiniz...
+          </div>
+        ) : (
           <>
-            <h2>Tüm Etkinlikler</h2>
-            <form className="filtre" onSubmit={(e) => e.preventDefault()}>
-              <div>
-                <label htmlFor="arama">Etkinlik ara</label>
-                <input
-                  id="arama"
-                  type="search"
-                  placeholder="atölye, kariyer..."
-                  value={searchText}
-                  onChange={(e) => setSearchText(e.target.value)}
-                />
-              </div>
-              <div>
-                <label htmlFor="kategori-filtre">Kategori</label>
-                <select
-                  id="kategori-filtre"
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value as Category | "")}
-                >
-                  <option value="">Tümü</option>
-                  {categories.map((cat) => (
-                    <option key={cat} value={cat}>{cat}</option>
-                  ))}
-                </select>
-              </div>
-            </form>
-
-            <p id="sonuc">
-              {filtered.length === 0
-                ? "Aradığınız kriterlere uygun etkinlik bulunamadı."
-                : `${filtered.length} etkinlik listeleniyor.`}
-            </p>
-
-            <section className="etkinlik-listesi">
-              {filtered.map(renderCard)}
-            </section>
-          </>
-        )}
-
-        {/* DETAY SAYFASI */}
-        {page === "detail" && (
-          <>
-            {!selected ? (
-              <div className="hata-kutusu">
-                <h2>Etkinlik bulunamadı!</h2>
-                <p>Aradığınız etkinlik bulunamadı veya geçersiz bir seçim yaptınız.</p>
-                <button
-                  type="button"
-                  className="link-vurgu-btn"
-                  onClick={() => go("events")}
-                >
-                  ← Listeye dön
-                </button>
-              </div>
-            ) : (
-              <article className="detay-kart">
-                <h2>{selected.title}</h2>
-                <div className="detay-kapsayici">
-                  {selected.image && (
-                    <figure>
-                      <img src={selected.image} alt={selected.title} />
-                      <figcaption>Şekil 1: Etkinlik afişi</figcaption>
-                    </figure>
-                  )}
-
-                  <dl>
-                    <dt>Tarih</dt>
-                    <dd>{formatDate(selected.date)}, {selected.time}</dd>
-
-                    <dt>Yer</dt>
-                    <dd>{selected.location}</dd>
-
-                    <dt>Kategori</dt>
-                    <dd>{selected.category}</dd>
-
-                    <dt>Kontenjan</dt>
-                    <dd>{selected.capacity} kişi</dd>
-                  </dl>
-                </div>
-
-                <p className="aciklama-metin">{selected.description}</p>
-
-                <div className="detay-butonlar">
+            {/* ANA SAYFA */}
+            {page === "home" && (
+              <>
+                <h2>Yaklaşan Etkinlikler</h2>
+                <section className="etkinlik-listesi">
+                  {upcoming.map(renderCard)}
+                </section>
+                <div style={{ marginTop: "1.5rem" }}>
                   <button
                     type="button"
                     className="buton-link"
-                    onClick={() => go("update", selected.id)}
-                  >
-                    Bu etkinliği güncelle
-                  </button>
-                  <button
-                    type="button"
-                    className="link-vurgu-btn"
                     onClick={() => go("events")}
                   >
-                    ← Listeye dön
+                    Tüm etkinlikleri gör
                   </button>
                 </div>
-              </article>
+              </>
             )}
-          </>
-        )}
 
-        {/* EKLE VE GÜNCELLEME SAYFASI */}
-        {(page === "add" || page === "update") && (
-          <>
-            {page === "update" && !selected ? (
-              <div className="hata-kutusu">
-                <h2>Geçersiz Bağlantı!</h2>
-                <p>Güncellenecek etkinlik bulunamadı. Lütfen bir etkinlik seçiniz.</p>
-                <button
-                  type="button"
-                  className="buton-link"
-                  style={{ marginTop: "1rem" }}
-                  onClick={() => go("events")}
-                >
-                  Etkinliklere git
-                </button>
-              </div>
-            ) : (
+            {/* ETKİNLİKLER LİSTESİ */}
+            {page === "events" && (
               <>
-                <h2>{page === "add" ? "Etkinlik Ekle" : "Etkinlik Güncelle"}</h2>
-
-                {Object.keys(errors).length > 0 && (
-                  <div className="hata-kutusu" style={{ marginBottom: "1rem" }}>
-                    Formda hatalı veya eksik alanlar var. Lütfen kontrol ediniz.
-                  </div>
-                )}
-
-                {submitResult && (
-                  <div className="basari-kutusu" style={{ marginBottom: "1rem" }}>
-                    <p><strong>{page === "update" ? "Etkinlik başarıyla güncellendi!" : "Etkinlik başarıyla eklendi!"}</strong></p>
-                    <pre>{JSON.stringify(submitResult, null, 2)}</pre>
-                  </div>
-                )}
-
-                <form className="form" noValidate onSubmit={handleFormSubmit}>
+                <h2>Tüm Etkinlikler</h2>
+                <form className="filtre" onSubmit={(e) => e.preventDefault()}>
                   <div>
-                    <label htmlFor="title">Etkinlik Adı</label>
+                    <label htmlFor="arama">Etkinlik ara</label>
                     <input
-                      id="title"
-                      name="title"
-                      type="text"
-                      maxLength={80}
-                      placeholder="Etkinlik adını girin"
-                      value={formData.title}
-                      onChange={handleInputChange}
-                      aria-invalid={errors.title ? "true" : undefined}
+                      id="arama"
+                      type="search"
+                      placeholder="atölye, kariyer..."
+                      value={searchText}
+                      onChange={(e) => setSearchText(e.target.value)}
                     />
-                    {errors.title && <span className="hata-alani">{errors.title}</span>}
                   </div>
-
                   <div>
-                    <label htmlFor="category">Kategori</label>
+                    <label htmlFor="kategori-filtre">Kategori</label>
                     <select
-                      id="category"
-                      name="category"
-                      value={formData.category}
-                      onChange={handleInputChange}
-                      aria-invalid={errors.category ? "true" : undefined}
+                      id="kategori-filtre"
+                      value={selectedCategory}
+                      onChange={(e) => setSelectedCategory(e.target.value as Category | "")}
                     >
-                      <option value="">Seçiniz ▾</option>
-                      {categories.map((c) => (
-                        <option key={c} value={c}>{c}</option>
+                      <option value="">Tümü</option>
+                      {categories.map((cat) => (
+                        <option key={cat} value={cat}>{cat}</option>
                       ))}
                     </select>
-                    {errors.category && <span className="hata-alani">{errors.category}</span>}
                   </div>
-
-                  <div>
-                    <label htmlFor="date">Tarih</label>
-                    <input
-                      id="date"
-                      name="date"
-                      type="date"
-                      value={formData.date}
-                      onChange={handleInputChange}
-                      aria-invalid={errors.date ? "true" : undefined}
-                    />
-                    {errors.date && <span className="hata-alani">{errors.date}</span>}
-                  </div>
-
-                  <div>
-                    <label htmlFor="time">Saat</label>
-                    <input
-                      id="time"
-                      name="time"
-                      type="time"
-                      value={formData.time}
-                      onChange={handleInputChange}
-                      aria-invalid={errors.time ? "true" : undefined}
-                    />
-                    {errors.time && <span className="hata-alani">{errors.time}</span>}
-                  </div>
-
-                  <div>
-                    <label htmlFor="location">Yer</label>
-                    <input
-                      id="location"
-                      name="location"
-                      type="text"
-                      placeholder="Örn: A Blok Salon"
-                      value={formData.location}
-                      onChange={handleInputChange}
-                      aria-invalid={errors.location ? "true" : undefined}
-                    />
-                    {errors.location && <span className="hata-alani">{errors.location}</span>}
-                  </div>
-
-                  <div>
-                    <label htmlFor="capacity">Kontenjan (1-1000)</label>
-                    <input
-                      id="capacity"
-                      name="capacity"
-                      type="number"
-                      placeholder="Örn: 100"
-                      value={formData.capacity}
-                      onChange={handleInputChange}
-                      aria-invalid={errors.capacity ? "true" : undefined}
-                    />
-                    {errors.capacity && <span className="hata-alani">{errors.capacity}</span>}
-                  </div>
-
-                  <div>
-                    <label htmlFor="description">Açıklama</label>
-                    <textarea
-                      id="description"
-                      name="description"
-                      rows={4}
-                      placeholder="Açıklama giriniz"
-                      value={formData.description}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-
-                  <button type="submit">
-                    {page === "add" ? "Kaydet" : "Güncelle"}
-                  </button>
                 </form>
+
+                <p id="sonuc">
+                  {filtered.length === 0
+                    ? "Aradığınız kriterlere uygun etkinlik bulunamadı."
+                    : `${filtered.length} etkinlik listeleniyor.`}
+                </p>
+
+                <section className="etkinlik-listesi">
+                  {filtered.map(renderCard)}
+                </section>
+              </>
+            )}
+
+            {/* DETAY SAYFASI */}
+            {page === "detail" && (
+              <>
+                {!selected ? (
+                  <div className="hata-kutusu">
+                    <h2>Etkinlik bulunamadı!</h2>
+                    <p>Aradığınız etkinlik bulunamadı veya geçersiz bir seçim yaptınız.</p>
+                    <button
+                      type="button"
+                      className="link-vurgu-btn"
+                      onClick={() => go("events")}
+                    >
+                      ← Listeye dön
+                    </button>
+                  </div>
+                ) : (
+                  <article className="detay-kart">
+                    <h2>{selected.title}</h2>
+                    <div className="detay-kapsayici">
+                      {selected.image && (
+                        <figure>
+                          <img src={selected.image} alt={selected.title} />
+                          <figcaption>Şekil 1: Etkinlik afişi</figcaption>
+                        </figure>
+                      )}
+
+                      <dl>
+                        <dt>Tarih</dt>
+                        <dd>{formatDate(selected.date)}, {selected.time}</dd>
+
+                        <dt>Yer</dt>
+                        <dd>{selected.location}</dd>
+
+                        <dt>Kategori</dt>
+                        <dd>{selected.category}</dd>
+
+                        <dt>Kontenjan</dt>
+                        <dd>{selected.capacity} kişi</dd>
+                      </dl>
+                    </div>
+
+                    <p className="aciklama-metin">{selected.description}</p>
+
+                    <div className="detay-butonlar">
+                      <button
+                        type="button"
+                        className="buton-link"
+                        onClick={() => go("update", selected.id)}
+                      >
+                        Bu etkinliği güncelle
+                      </button>
+                      <button
+                        type="button"
+                        className="link-vurgu-btn"
+                        onClick={() => go("events")}
+                      >
+                        ← Listeye dön
+                      </button>
+                    </div>
+                  </article>
+                )}
+              </>
+            )}
+
+            {/* EKLE / GÜNCELLE SAYFASI */}
+            {(page === "add" || page === "update") && (
+              <>
+                {page === "update" && !selected ? (
+                  <div className="hata-kutusu">
+                    <h2>Geçersiz Bağlantı!</h2>
+                    <p>Güncellenecek etkinlik bulunamadı. Lütfen bir etkinlik seçiniz.</p>
+                    <button
+                      type="button"
+                      className="buton-link"
+                      style={{ marginTop: "1rem" }}
+                      onClick={() => go("events")}
+                    >
+                      Etkinliklere git
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <h2>{page === "add" ? "Etkinlik Ekle" : "Etkinlik Güncelle"}</h2>
+
+                    {Object.keys(errors).length > 0 && (
+                      <div className="hata-kutusu" style={{ marginBottom: "1rem" }}>
+                        Formda hatalı veya eksik alanlar var. Lütfen kontrol ediniz.
+                      </div>
+                    )}
+
+                    {submitResult && (
+                      <div className="basari-kutusu" style={{ marginBottom: "1rem" }}>
+                        <p><strong>{page === "update" ? "Etkinlik başarıyla güncellendi!" : "Etkinlik başarıyla eklendi!"}</strong></p>
+                        <pre>{JSON.stringify(submitResult, null, 2)}</pre>
+                      </div>
+                    )}
+
+                    <form className="form" noValidate onSubmit={handleFormSubmit}>
+                      <div>
+                        <label htmlFor="title">Etkinlik Adı</label>
+                        <input
+                          id="title"
+                          name="title"
+                          type="text"
+                          maxLength={80}
+                          placeholder="Etkinlik adını girin"
+                          value={formData.title}
+                          onChange={handleInputChange}
+                          aria-invalid={errors.title ? "true" : undefined}
+                        />
+                        {errors.title && <span className="hata-alani">{errors.title}</span>}
+                      </div>
+
+                      <div>
+                        <label htmlFor="category">Kategori</label>
+                        <select
+                          id="category"
+                          name="category"
+                          value={formData.category}
+                          onChange={handleInputChange}
+                          aria-invalid={errors.category ? "true" : undefined}
+                        >
+                          <option value="">Seçiniz ▾</option>
+                          {categories.map((c) => (
+                            <option key={c} value={c}>{c}</option>
+                          ))}
+                        </select>
+                        {errors.category && <span className="hata-alani">{errors.category}</span>}
+                      </div>
+
+                      <div>
+                        <label htmlFor="date">Tarih</label>
+                        <input
+                          id="date"
+                          name="date"
+                          type="date"
+                          value={formData.date}
+                          onChange={handleInputChange}
+                          aria-invalid={errors.date ? "true" : undefined}
+                        />
+                        {errors.date && <span className="hata-alani">{errors.date}</span>}
+                      </div>
+
+                      <div>
+                        <label htmlFor="time">Saat</label>
+                        <input
+                          id="time"
+                          name="time"
+                          type="time"
+                          value={formData.time}
+                          onChange={handleInputChange}
+                          aria-invalid={errors.time ? "true" : undefined}
+                        />
+                        {errors.time && <span className="hata-alani">{errors.time}</span>}
+                      </div>
+
+                      <div>
+                        <label htmlFor="location">Yer</label>
+                        <input
+                          id="location"
+                          name="location"
+                          type="text"
+                          placeholder="Örn: A Blok Salon"
+                          value={formData.location}
+                          onChange={handleInputChange}
+                          aria-invalid={errors.location ? "true" : undefined}
+                        />
+                        {errors.location && <span className="hata-alani">{errors.location}</span>}
+                      </div>
+
+                      <div>
+                        <label htmlFor="capacity">Kontenjan (1-1000)</label>
+                        <input
+                          id="capacity"
+                          name="capacity"
+                          type="number"
+                          placeholder="Örn: 100"
+                          value={formData.capacity}
+                          onChange={handleInputChange}
+                          aria-invalid={errors.capacity ? "true" : undefined}
+                        />
+                        {errors.capacity && <span className="hata-alani">{errors.capacity}</span>}
+                      </div>
+
+                      <div>
+                        <label htmlFor="description">Açıklama</label>
+                        <textarea
+                          id="description"
+                          name="description"
+                          rows={4}
+                          placeholder="Açıklama giriniz"
+                          value={formData.description}
+                          onChange={handleInputChange}
+                        />
+                      </div>
+
+                      <button type="submit" disabled={submitting}>
+                        {submitting ? "Gönderiliyor..." : page === "add" ? "Kaydet" : "Güncelle"}
+                      </button>
+                    </form>
+                  </>
+                )}
               </>
             )}
           </>
