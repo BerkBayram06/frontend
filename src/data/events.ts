@@ -10,7 +10,7 @@ export const initialEvents: CampusEvent[] = [
     time: "14:00",
     location: "A Blok Konferans Salonu",
     description: "Mezunlarla kariyer söyleşileri ve şirket standları.",
-    image: "/afis.svg"
+    image: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&auto=format&fit=crop"
   },
   {
     id: "event-2",
@@ -20,7 +20,8 @@ export const initialEvents: CampusEvent[] = [
     date: "2026-10-20",
     time: "10:00",
     location: "Bilgisayar Laboratuvarı 2",
-    description: "Arduino ile çizgi izleyen robot yapımı, başlangıç seviyesi."
+    description: "Arduino ile çizgi izleyen robot yapımı, başlangıç seviyesi.",
+    image: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=800&auto=format&fit=crop"
   },
   {
     id: "event-3",
@@ -30,6 +31,7 @@ export const initialEvents: CampusEvent[] = [
     date: "2026-10-27",
     time: "15:00",
     location: "B Blok Amfi 1",
-    description: "Güncel siber tehditler ve beyaz şapkalı hackerlık üzerine söyleşi."
+    description: "Güncel siber tehditler ve beyaz şapkalı hackerlık üzerine söyleşi.",
+    image: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&auto=format&fit=crop"
   }
 ];

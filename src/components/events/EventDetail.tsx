@@ -1,14 +1,5 @@
 import type { CampusEvent, PageName } from "../../types/campus-event";
 
-function formatDate(dateStr: string): string {
-  const parts = dateStr.split("-");
-  if (parts.length === 3) {
-    const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
-    return d.toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" });
-  }
-  return dateStr;
-}
-
 interface EventDetailProps {
   selected?: CampusEvent;
   onNavigate: (next: PageName, id?: string | null) => void;
@@ -18,48 +9,62 @@ export function EventDetail({ selected, onNavigate }: EventDetailProps) {
   if (!selected) {
     return (
       <div className="hata-kutusu">
-        <h2>Etkinlik bulunamadı!</h2>
-        <p>Aradığınız etkinlik bulunamadı veya geçersiz bir seçim yaptınız.</p>
+        <h2>Etkinlik Bulunamadı!</h2>
+        <p>Aradığınız etkinlik mevcut değil veya kaldırılmış olabilir.</p>
         <button
           type="button"
-          className="link-vurgu-btn"
+          className="buton-link"
+          style={{ marginTop: "1rem" }}
           onClick={() => onNavigate("events")}
         >
-          ← Listeye dön
+          Tüm Etkinliklere Dön
         </button>
       </div>
     );
   }
 
+  const imageUrl =
+    selected.image && selected.image.trim() !== ""
+      ? selected.image
+      : "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&auto=format&fit=crop";
+
   return (
     <article className="detay-kart">
       <h2>{selected.title}</h2>
-      <div className="detay-kapsayici">
-        {selected.image && (
-          <figure>
-            <img src={selected.image} alt={selected.title} />
-            <figcaption>Şekil 1: Etkinlik afişi</figcaption>
-          </figure>
-        )}
 
-        <dl>
-          <dt>Tarih</dt>
-          <dd>{formatDate(selected.date)}, {selected.time}</dd>
+      <figure style={{ margin: "1rem 0" }}>
+        <img
+          src={imageUrl}
+          alt={selected.title}
+          style={{
+            maxWidth: "100%",
+            height: "auto",
+            maxHeight: "350px",
+            objectFit: "cover",
+            borderRadius: "8px"
+          }}
+          onError={(e) => {
+            (e.target as HTMLImageElement).src =
+              "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&auto=format&fit=crop";
+          }}
+        />
+        <figcaption style={{ fontSize: "0.85rem", color: "#666", marginTop: "0.4rem" }}>
+          Şekil 1: Etkinlik afişi
+        </figcaption>
+      </figure>
 
-          <dt>Yer</dt>
-          <dd>{selected.location}</dd>
-
-          <dt>Kategori</dt>
-          <dd>{selected.category}</dd>
-
-          <dt>Kontenjan</dt>
-          <dd>{selected.capacity} kişi</dd>
-        </dl>
+      <div className="detay-bilgi">
+        <p><strong>Tarih:</strong> {selected.date}, {selected.time}</p>
+        <p><strong>Yer:</strong> {selected.location}</p>
+        <p><strong>Kategori:</strong> {selected.category}</p>
+        <p><strong>Kontenjan:</strong> {selected.capacity} kişi</p>
       </div>
 
-      <p className="aciklama-metin">{selected.description}</p>
+      <p className="detay-aciklama" style={{ margin: "1.5rem 0" }}>
+        {selected.description}
+      </p>
 
-      <div className="detay-butonlar">
+      <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
         <button
           type="button"
           className="buton-link"
@@ -67,6 +72,7 @@ export function EventDetail({ selected, onNavigate }: EventDetailProps) {
         >
           Bu etkinliği güncelle
         </button>
+
         <button
           type="button"
           className="link-vurgu-btn"
