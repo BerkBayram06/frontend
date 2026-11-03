@@ -1,20 +1,12 @@
-import type { CampusEvent, PageName } from "../../types/campus-event";
-import { Navigation } from "./Navigation";
-
-interface HeaderProps {
-  page: PageName;
-  selectedEvent?: CampusEvent;
-  onNavigate: (next: PageName) => void;
-}
-
-export function Header({ page, selectedEvent, onNavigate }: HeaderProps) {
-  // Eğer detay sayfasındaysak ve seçili etkinlik varsa onun adını, değilse genel başlığı basıyoruz
-  const headerTitle = page === "detail" && selectedEvent ? selectedEvent.title : "Kampüs Etkinlikleri";
-
+export function Header() {
   return (
     <header>
-      <h1>{headerTitle}</h1>
-      <Navigation page={page} onNavigate={onNavigate} />
+      <h1>Kampüs Etkinlikleri</h1>
+      <p style={{ color: "var(--metin-acik)", fontSize: "0.95rem" }}>
+        Fakültedeki seminer, atölye ve söyleşileri tek yerden takip edin.
+      </p>
     </header>
   );
 }
+
+export default Header;

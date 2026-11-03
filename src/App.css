@@ -5,10 +5,12 @@
   --renk-zemin: hsl(var(--ton) 30% 97%);
   --font: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --bosluk-m: 1rem;
+  --bosluk-s: 0.5rem;
   --kose: 8px;
   --metin-koyu: #1f2937;
   --metin-acik: #4b5563;
   --hata-renk: #dc2626;
+  --renk-hata: #dc2626;
   --beyaz: #ffffff;
 }
 
@@ -45,6 +47,7 @@ nav ul {
   flex-wrap: wrap;
   gap: 0.75rem 1.25rem;
   list-style: none;
+  margin-bottom: 1.5rem;
 }
 
 nav a {
@@ -54,12 +57,20 @@ nav a {
   display: inline-block;
   padding: 0.4rem 0.6rem;
   border-radius: 4px;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 nav a:hover,
+nav a.active,
 nav a[aria-current="page"] {
   background-color: var(--renk-ana);
   color: var(--beyaz);
+}
+
+.bolum-baslik {
+  color: var(--renk-ana);
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .filtre {
@@ -137,6 +148,7 @@ nav a[aria-current="page"] {
   cursor: pointer;
   padding: 0;
   font-size: 1rem;
+  display: inline-block;
 }
 
 .detay-kart {
@@ -233,7 +245,7 @@ input, select, textarea {
   max-width: 600px;
 }
 
-button, .buton-link {
+button, .buton, .buton-link {
   background-color: var(--renk-ana);
   color: var(--beyaz);
   border: none;
@@ -246,6 +258,7 @@ button, .buton-link {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  text-decoration: none;
 }
 
 .link-vurgu-btn {
@@ -255,6 +268,7 @@ button, .buton-link {
   font-weight: bold;
   cursor: pointer;
   font-size: 1rem;
+  padding: 0;
 }
 
 @media (min-width: 768px) {
@@ -276,6 +290,7 @@ button, .buton-link {
     flex: 1;
   }
 }
+
 /* Form Doğrulama ve Hata Görünümleri */
 input[aria-invalid="true"],
 select[aria-invalid="true"],
@@ -283,17 +298,26 @@ textarea[aria-invalid="true"] {
   border-color: var(--hata-renk) !important;
 }
 
-.hata-alani {
+.hata-alani,
+.hata-metni {
   color: var(--hata-renk);
   font-size: 0.85rem;
   margin-top: 0.25rem;
   display: block;
 }
 
+.mesaj {
+  padding: 0.75rem 1rem;
+  border-radius: var(--kose);
+  margin-bottom: 1rem;
+  font-weight: 500;
+}
+
+.mesaj-basari,
 .basari-kutusu {
   background-color: #f0fdf4;
-  border: 1px solid var(--basari-renk);
-  color: #166534;
+  border: 1px solid #22c55e;
+  color: #15803d;
   padding: 1rem;
   border-radius: var(--kose);
   max-width: 600px;
@@ -307,4 +331,100 @@ textarea[aria-invalid="true"] {
   overflow-x: auto;
   border: 1px solid #bbf7d0;
   font-size: 0.85rem;
+}
+
+/* Adım 13: Yönetim Tablosu Stilleri */
+.tablo {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  background: var(--beyaz);
+  border-radius: var(--kose);
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.tablo th {
+  background: var(--renk-ana);
+  color: #fff;
+  text-align: left;
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+}
+
+.tablo td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.islemler {
+  display: flex;
+  gap: var(--bosluk-s);
+  align-items: center;
+}
+
+.buton-sil {
+  background: var(--renk-hata);
+  color: #fff;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: var(--kose);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.buton-sil:hover {
+  opacity: 0.9;
+}
+
+.buton-duzenle {
+  background: var(--renk-ana);
+  color: #fff;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: var(--kose);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.buton-duzenle:hover {
+  opacity: 0.9;
+}
+
+@media (max-width: 699px) {
+  .tablo thead {
+    display: none;
+  }
+  .tablo {
+    background: transparent;
+    box-shadow: none;
+  }
+  .tablo tr {
+    display: block;
+    border: 1px solid #cbd5e1;
+    border-radius: var(--kose);
+    margin-bottom: 1rem;
+    padding: 0.85rem;
+    background: var(--beyaz);
+  }
+  .tablo td {
+    display: block;
+    padding: 0.35rem 0;
+    border-bottom: none;
+  }
+  .tablo td.islemler {
+    display: flex;
+    margin-top: 0.75rem;
+    padding-top: 0.5rem;
+    border-top: 1px dashed #e2e8f0;
+  }
+  .tablo td[data-baslik]::before {
+    content: attr(data-baslik) ": ";
+    font-weight: 700;
+  }
 }

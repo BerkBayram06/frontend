@@ -1,42 +1,26 @@
-import type { PageName } from "../../types/campus-event";
+import { NavLink } from "react-router-dom";
 
-interface NavigationProps {
-  page: PageName;
-  onNavigate: (next: PageName) => void;
-}
+const menu = [
+  { to: "/", label: "Ana Sayfa" },
+  { to: "/events", label: "Etkinlikler" },
+  { to: "/admin", label: "Yönetim" },
+  { to: "/login", label: "Giriş" },
+];
 
-export function Navigation({ page, onNavigate }: NavigationProps) {
+export function Navigation() {
   return (
     <nav>
       <ul>
-        <li>
-          <a
-            href="#home"
-            aria-current={page === "home" ? "page" : undefined}
-            onClick={(e) => { e.preventDefault(); onNavigate("home"); }}
-          >
-            Ana Sayfa
-          </a>
-        </li>
-        <li>
-          <a
-            href="#events"
-            aria-current={page === "events" ? "page" : undefined}
-            onClick={(e) => { e.preventDefault(); onNavigate("events"); }}
-          >
-            Etkinlikler
-          </a>
-        </li>
-        <li>
-          <a
-            href="#add"
-            aria-current={page === "add" ? "page" : undefined}
-            onClick={(e) => { e.preventDefault(); onNavigate("add"); }}
-          >
-            Ekle
-          </a>
-        </li>
+        {menu.map((item) => (
+          <li key={item.to}>
+            <NavLink to={item.to} end={item.to === "/"}>
+              {item.label}
+            </NavLink>
+          </li>
+        ))}
       </ul>
     </nav>
   );
 }
+
+export default Navigation;
