@@ -1,4 +1,4 @@
-# Kampüs Etkinlikleri — Sprint 6 + Vize
+# Kampüs Etkinlikleri — Sprint 6 + Vize 
 
 Web Teknolojileri ve Programlama Dersi — **Sprint 6 + Vize** Teslim Projesi.
 
