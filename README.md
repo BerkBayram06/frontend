@@ -117,3 +117,38 @@ npm run build
 ```bash
 npm run preview
 ```
+
+---
+
+# Kampüs Etkinlikleri — Sprint 7 (Node + Express REST API)
+
+Web Teknolojileri ve Programlama Dersi — **Sprint 7** Teslim Projesi.
+
+Bu sprintte mevcut React + Vite + TypeScript frontend yapısı korunmuş; repo köküne veri sağlayan bağımsız bir Node.js + Express REST API (`backend/`) mimarisi eklenmiştir.
+
+## Sprint 7 Mimarisi
+
+```text
+frontend/  → React + Vite · http://localhost:5173 · Bu sprintte değişmedi
+backend/   → Node + Express · http://localhost:3000 · Yeni REST API servisi (in-memory)
+```
+
+### Backend Ne İşe Yarar?
+Backend, kampüs etkinlikleri verisini yönetmek ve istemcilere sunmak üzere tasarlanmış RESTful bir API servisidir:
+- **`GET /health`:** API durumunu ve öğrenci numarasını (`2311012828`) doğrular.
+- **`GET /events`:** Bellek içi etkinlik listesini döndürür (`?category=...` filtresi destekler).
+- **`GET /events/:id`:** Belirli bir etkinliğin detayını döndürür (bulunamadığında 404).
+- **`POST /events`:** Doğrulama kurallarından geçen yeni etkinliği ekler (201 döner; eksik veride 400).
+
+Ayrıntılı REST sözleşmesi, mimari detaylar ve Postman koleksiyonu için [backend/README.md](backend/README.md) dosyasını inceleyebilirsiniz.
+
+### Backend Kurulum ve Çalıştırma
+
+```bash
+cd backend
+npm install
+npm run dev
+```
+
+Sunucu varsayılan olarak `http://localhost:3000` adresinde çalışmaya başlar.
+
