@@ -1,15 +1,19 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "Kampüs Etkinlikleri Node + Express REST API (Sprint 7)",
   "main": "src/server.js",
   "type": "module",
   "scripts": {
     "dev": "node --watch src/server.js",
     "start": "node src/server.js"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "express",
+    "rest-api",
+    "campus-events"
+  ],
+  "author": "Hamza Berk Bayram",
   "license": "ISC",
   "dependencies": {
     "cors": "^2.8.6",
